@@ -10,21 +10,26 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/checkout@v4
         with:
-          node-version: '18'
+          ref: main
 
-      - name: Install Dependencies
-        run: npm install
-
-      - name: Build
-        run: npm run build
-
-      - name: Deploy
-        uses: peaceiris/actions-gh-pages@v3
+      - name: Copy files via SSH
+        uses: appleboy/scp-action@v0.1.7
         with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./build
+          host: 3.109.123.250
+          username: admin
+          key: ${{ secrets.EC2_SSH_KEY }}
+          source: "."
+          target: "/home/admin/app"
+      
+      - name: Execute deployment script
+        uses: appleboy/ssh-action@v0.1.7
+        with:
+          host: 3.109.123.250
+          username: admin
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script: |
+              cd /home/admin/app
+              npm run build
+              pm2 start npm --name "test" -- start
