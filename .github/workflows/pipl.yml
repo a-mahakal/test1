@@ -31,5 +31,7 @@ jobs:
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
               cd /home/admin/app
+              npm install
               npm run build
-              pm2 start npm --name "test" -- start
+              pm2 delete nextjs-app || true
+              pm2 start npm --name nextjs-app -- run start -- -p 3000
